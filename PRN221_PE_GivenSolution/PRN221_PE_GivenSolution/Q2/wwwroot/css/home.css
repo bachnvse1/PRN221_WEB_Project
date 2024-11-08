@@ -129,6 +129,20 @@
             background-color: #2980b9;
         }
 
+    .product-item .btn-remove {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #3498db;
+        color: white;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+        .product-item .btn-remove:hover {
+            background-color: #2980b9;
+        }
+
 /* Footer styles */
 .footer {
     background-color: #34495e;

@@ -1,0 +1,52 @@
+﻿@page "/Member/List"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Q2.Pages.Members.MemberListModel
+@{
+
+}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Home</title>
+    <link rel="stylesheet" href="~/css/member.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<h2 style="text-align:center; font-weight:bold; color:red;">Danh sách người dùng</h2>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Tên công ty</th>
+            <th>Thành phố</th>
+            <th>Quốc gia</th>
+            <th>Vai trò</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var member in Model.Members)
+        {
+            <tr>
+                <td>@member.MemberId</td>
+                <td>@member.Email</td>
+                <td>@member.CompanyName</td>
+                <td>@member.City</td>
+                <td>@member.Country</td>
+                <td>@member.Role.RoleName</td> <!-- Hiển thị tên vai trò -->
+                <td>
+                    <!-- Nút Edit -->
+                    <a href="/Member/Edit?memberId=@member.MemberId" class="edit-button">Sửa</a>
+
+                    <!-- Nút Delete -->
+                    <form method="post" asp-page-handler="Delete" asp-route-memberId="@member.MemberId" class="action-form">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa thành viên này?');">Xóa</button>
+                    </form>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>

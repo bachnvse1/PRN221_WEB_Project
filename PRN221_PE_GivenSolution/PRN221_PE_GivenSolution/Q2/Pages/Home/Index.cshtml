@@ -26,7 +26,7 @@
                     <li><a href="#"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
                     <li><a href="#"><i class="fas fa-list"></i> Order</a></li>
                     <li><a href="#"><i class="fas fa-receipt"></i> Order Detail</a></li>
-                    <li><a href="#"><i class="fas fa-user-circle"></i> Tài khoản</a></li>
+                    <li><a href="/Member/List"><i class="fas fa-user-circle"></i> Tài khoản</a></li>
                 </ul>
             </nav>
         </aside>
@@ -42,6 +42,7 @@
                 <!-- Tìm kiếm -->
                 <form method="get" class="search-form">
                     <input type="text" name="searchQuery" placeholder="Tìm kiếm sản phẩm" value="@Model.SearchQuery">
+                    <input type="text" name="selectedCategory" placeholder="Tìm kiếm sản phẩm" value="@Model.SelectedCategory" hidden>
                     <button type="submit">Tìm kiếm</button>
                 </form>
 
@@ -71,7 +72,7 @@
                                     <p class="product-weight">Cân nặng: @product.Weight kg</p>
                                     <p class="product-price">Giá: @product.UnitPrice VND</p>
                                     <button class="btn-detail" data-product-id="@product.ProductId">Xem chi tiết</button>
-                                    <button class="btn-detail" data-product-id="@product.ProductId">Xoá</button>
+                                    <button type="button" class="btn-remove" data-product-id="@product.ProductId">Xoá</button>
                                 </div>
                             </div>
                         }
@@ -173,7 +174,38 @@
             $('.close-modal').on('click', function () {
                 $('#product-detail-modal').hide();
             });
+
+
+            $('.btn-remove').on('click', function () {
+                var productId = $(this).data('product-id');
+
+                // Hiển thị hộp thoại xác nhận trước khi xóa
+                var confirmDelete = confirm("Bạn có chắc chắn muốn xoá sản phẩm này không?");
+                if (confirmDelete) {
+                    // Gửi yêu cầu AJAX để xoá sản phẩm
+                    $.ajax({
+                        url: '/Home?handler=ProductRemove', // Đường dẫn đến handler xoá sản phẩm
+                        type: 'GET',
+                        data: { productId: productId },
+                        success: function (response) {
+                            // Xoá phần tử sản phẩm khỏi danh sách nếu xoá thành công
+                            if (response.success) {
+                                alert("Xoá thành công");
+                                location.reload();
+                            } else {
+                                alert("Không thể xoá sản phẩm.");
+                            }
+                        },
+                        error: function () {
+                            alert("Đã có lỗi xảy ra.");
+                        }
+                    });
+                }
+            });
+
         });
+
+
 
     </script>
 

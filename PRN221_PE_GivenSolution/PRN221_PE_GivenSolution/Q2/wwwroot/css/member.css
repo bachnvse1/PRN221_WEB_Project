@@ -1,0 +1,132 @@
+﻿/* Bảng đẹp và dễ nhìn */
+.table {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse; /* Xóa khoảng cách giữa các ô */
+    font-family: 'Arial', sans-serif;
+}
+
+    .table thead {
+        background-color: #007BFF; /* Màu nền cho phần tiêu đề */
+        color: white; /* Màu chữ cho tiêu đề */
+    }
+
+    .table th, .table td {
+        padding: 12px 15px;
+        text-align: left;
+        border: 1px solid #ddd; /* Viền cho các ô */
+    }
+
+    .table tbody tr:nth-child(odd) {
+        background-color: #f9f9f9; /* Màu nền cho các hàng lẻ */
+    }
+
+    .table tbody tr:hover {
+        background-color: #f1f1f1; /* Màu nền khi di chuột qua hàng */
+    }
+
+    .table th {
+        font-weight: bold;
+    }
+
+    .table td {
+        font-size: 14px;
+    }
+
+/* Cải thiện trải nghiệm người dùng */
+h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.form-container {
+    margin-top: 20px;
+}
+/* Định dạng chung cho các nút trong cột Action */
+td .action-form {
+    display: inline-block; /* Để các form xuất hiện cạnh nhau */
+    margin: 0 5px; /* Khoảng cách giữa các nút */
+}
+
+button {
+    font-size: 14px;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px; /* Tạo các góc bo tròn */
+    transition: all 0.3s ease; /* Thêm hiệu ứng khi hover */
+}
+
+    /* Nút Sửa */
+    button.btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+        button.btn-primary:hover {
+            background-color: #0056b3; /* Màu khi hover */
+        }
+
+    /* Nút Xóa */
+    button.btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+        button.btn-danger:hover {
+            background-color: #c82333; /* Màu khi hover */
+        }
+
+    /* Nút ở trạng thái bị vô hiệu hóa */
+    button:disabled {
+        background-color: #e0e0e0;
+        cursor: not-allowed;
+    }
+
+/* Tùy chọn thêm cho layout */
+table th, table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+/* Định dạng chung cho các nút */
+.edit-button, .delete-button {
+    display: inline-block;
+    padding: 8px 12px;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+/* Nút Sửa */
+.edit-button {
+    background-color: #007bff;
+    margin-right: 5px;
+}
+
+    .edit-button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+
+/* Nút Xóa */
+.delete-button {
+    background-color: #dc3545;
+}
+
+    .delete-button:hover {
+        background-color: #c82333;
+        transform: scale(1.05);
+    }
+
+/* Định dạng form để các nút không bị tách dòng */
+.action-form {
+    display: inline;
+    margin: 0;
+}

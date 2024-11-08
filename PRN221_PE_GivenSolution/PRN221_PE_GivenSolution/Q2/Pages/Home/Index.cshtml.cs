@@ -89,5 +89,31 @@ namespace Q2.Pages.Home
             _context.SaveChanges();
             return RedirectToPage("");
         }
+
+        public IActionResult OnGetProductRemove(int? productId)
+        {
+            if (productId == null)
+            {
+                return new JsonResult(new { success = false, message = "Không tìm thấy sản phẩm." });
+            }
+
+            var product = _context.Products.Where(x => x.ProductId == productId).FirstOrDefault();
+
+            if (product != null)
+            {
+                // Xoá sản phẩm khỏi cơ sở dữ liệu
+                _context.Products.Remove(product);
+                _context.SaveChanges();
+
+                // Trả về phản hồi thành công
+                return new JsonResult(new { success = true });
+            }
+            else
+            {
+                // Trả về phản hồi lỗi nếu không tìm thấy sản phẩm
+                return new JsonResult(new { success = false, message = "Sản phẩm không tồn tại." });
+            }
+        }
+
     }
 }
