@@ -1,4 +1,5 @@
 ﻿@page "/Home"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model Q2.Pages.Home.IndexModel
 @{
 }
@@ -37,10 +38,90 @@
             </header>
             <section>
                 <p>Chào mừng đến với trang quản lý của chúng tôi.</p>
-                <!-- Các nội dung khác của trang home -->
+
+                <!-- Tìm kiếm -->
+                <form method="get" class="search-form">
+                    <input type="text" name="searchQuery" placeholder="Tìm kiếm sản phẩm" value="@Model.SearchQuery">
+                    <button type="submit">Tìm kiếm</button>
+                </form>
+
+                <!-- Lọc theo category -->
+                <form method="get" class="category-filter">
+                    <select name="selectedCategory" onchange="this.form.submit()">
+                        <option value="">Chọn danh mục</option>
+                        @foreach (var category in Model.Categories ?? new List<string>())
+                        {
+                            <option value="@category" selected="@((category == Model.SelectedCategory) ? "selected" : null)">@category</option>
+                        }
+                    </select>
+                </form>
+
+                <!-- Hiển thị sản phẩm -->
+                <div class="product-list">
+                    @if (Model.Products.Any())
+                    {
+                        foreach (var product in Model.Products)
+                        {
+                            <div class="product-item">
+                                <div class="product-image">
+                                    <img src="@product.Image" alt="@product.ProductName" />
+                                </div>
+                                <div class="product-details">
+                                    <h3>@product.ProductName</h3>
+                                    <p class="product-weight">Cân nặng: @product.Weight kg</p>
+                                    <p class="product-price">Giá: @product.UnitPrice VND</p>
+                                    <button class="btn-detail" data-product-id="@product.ProductId">Xem chi tiết</button>
+                                    <button class="btn-detail" data-product-id="@product.ProductId">Xoá</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>Không có sản phẩm nào phù hợp với tìm kiếm hoặc bộ lọc của bạn.</p>
+                    }
+                </div>
             </section>
         </main>
     </div>
+
+    <!-- Modal -->
+    <!-- Modal Detail -->
+    <div id="product-detail-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="close-modal" aria-label="Close Modal">×</button> <!-- Nút Đóng ở góc phải -->
+            <h2 id="modal-product-name"></h2>
+            <form id="product-detail-form" method="post" asp-page-handler="ProductUpdate">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label for="ProductName">Tên sản phẩm:</label>
+                    <input type="text" id="ProductName" name="productName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="UnitPrice">Giá:</label>
+                    <input type="text" id="UnitPrice" name="productPrice" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="Weight">Cân nặng:</label>
+                    <input type="text" id="Weight" name="productWeight" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="Image">Hình ảnh:</label>
+                    <input type="text" id="Image" name="productImage" class="form-control" />
+                </div>
+                <div class="form-group" style="display:none;">
+                    <label for="productId"></label>
+                    <input type="number" id="Id" name="productId" class="form-control" readonly/>
+                </div>
+                <!-- Nút Update và Remove ở giữa -->
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-primary" id="update-product-btn">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
 
     <!-- Footer -->
     <footer class="footer">
@@ -52,5 +133,50 @@
             <a href="#"><i class="fab fa-instagram"></i></a>
         </div>
     </footer>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Khi bấm vào nút "Xem chi tiết"
+            $('.btn-detail').on('click', function () {
+                var productId = $(this).data('product-id');
+
+                // Gửi yêu cầu AJAX để lấy dữ liệu sản phẩm chi tiết
+                $.ajax({
+                    url: '/Home?handler=ProductDetails',
+                    type: 'GET',
+                    data: { id: productId },
+                    success: function (product) {
+                        console.log(product); // In đối tượng product ra console để kiểm tra
+
+                        // Điền dữ liệu sản phẩm vào modal
+                        $('#modal-product-name').text(product.productName);
+                        $('#ProductName').val(product.productName);
+                        $('#UnitPrice').val(product.unitPrice);
+                        $('#Weight').val(product.weight);
+                        $('#Image').val(product.image);
+                        $('#Id').val(product.productId);
+
+                        // Hiển thị modal
+                        $('#product-detail-modal').css("display", "flex");
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Lỗi khi tải chi tiết sản phẩm:', error);
+                        alert('Có lỗi xảy ra khi tải chi tiết sản phẩm.');
+                    }
+                });
+            });
+
+            // Đóng modal khi nhấn nút "Đóng"
+            $('.close-modal').on('click', function () {
+                $('#product-detail-modal').hide();
+            });
+        });
+
+    </script>
+
+
 </body>
 </html>

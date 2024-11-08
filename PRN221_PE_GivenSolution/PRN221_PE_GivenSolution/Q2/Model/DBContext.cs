@@ -16,12 +16,12 @@ namespace Q2.Model
         {
         }
 
-        public virtual DbSet<Category> Categories { get; set; } = null!;
-        public virtual DbSet<Customer> Customers { get; set; } = null!;
-        public virtual DbSet<Employee> Employees { get; set; } = null!;
+        public virtual DbSet<Member> Members { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         public virtual DbSet<Product> Products { get; set; } = null!;
+        public virtual DbSet<Role> Roles { get; set; } = null!;
+        public virtual DbSet<Category> Categories { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -34,186 +34,116 @@ namespace Q2.Model
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Category>(entity =>
+            modelBuilder.Entity<Member>(entity =>
             {
-                entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+                entity.ToTable("Member");
 
-                entity.Property(e => e.CategoryName).HasMaxLength(15);
+                entity.HasIndex(e => e.Email, "UQ__Member__A9D10534FF0D0BF3")
+                    .IsUnique();
 
-                entity.Property(e => e.Description).HasColumnType("ntext");
+                entity.Property(e => e.City).HasMaxLength(50);
 
-                entity.Property(e => e.Picture).HasColumnType("image");
-            });
+                entity.Property(e => e.CompanyName).HasMaxLength(100);
 
-            modelBuilder.Entity<Customer>(entity =>
-            {
-                entity.Property(e => e.CustomerId)
-                    .HasMaxLength(5)
-                    .HasColumnName("CustomerID")
-                    .IsFixedLength();
+                entity.Property(e => e.Country).HasMaxLength(50);
 
-                entity.Property(e => e.Address).HasMaxLength(60);
+                entity.Property(e => e.Email).HasMaxLength(100);
 
-                entity.Property(e => e.City).HasMaxLength(15);
+                entity.Property(e => e.Password).HasMaxLength(50);
 
-                entity.Property(e => e.CompanyName).HasMaxLength(40);
-
-                entity.Property(e => e.ContactName).HasMaxLength(30);
-
-                entity.Property(e => e.ContactTitle).HasMaxLength(30);
-
-                entity.Property(e => e.Country).HasMaxLength(15);
-
-                entity.Property(e => e.Fax).HasMaxLength(24);
-
-                entity.Property(e => e.Phone).HasMaxLength(24);
-
-                entity.Property(e => e.PostalCode).HasMaxLength(10);
-
-                entity.Property(e => e.Region).HasMaxLength(15);
-            });
-
-            modelBuilder.Entity<Employee>(entity =>
-            {
-                entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
-
-                entity.Property(e => e.Address).HasMaxLength(60);
-
-                entity.Property(e => e.BirthDate).HasColumnType("datetime");
-
-                entity.Property(e => e.City).HasMaxLength(15);
-
-                entity.Property(e => e.Country).HasMaxLength(15);
-
-                entity.Property(e => e.Extension).HasMaxLength(4);
-
-                entity.Property(e => e.FirstName).HasMaxLength(10);
-
-                entity.Property(e => e.HireDate).HasColumnType("datetime");
-
-                entity.Property(e => e.HomePhone).HasMaxLength(24);
-
-                entity.Property(e => e.LastName).HasMaxLength(20);
-
-                entity.Property(e => e.Notes).HasColumnType("ntext");
-
-                entity.Property(e => e.Photo).HasColumnType("image");
-
-                entity.Property(e => e.PhotoPath).HasMaxLength(255);
-
-                entity.Property(e => e.PostalCode).HasMaxLength(10);
-
-                entity.Property(e => e.Region).HasMaxLength(15);
-
-                entity.Property(e => e.Title).HasMaxLength(30);
-
-                entity.Property(e => e.TitleOfCourtesy).HasMaxLength(25);
-
-                entity.HasOne(d => d.ReportsToNavigation)
-                    .WithMany(p => p.InverseReportsToNavigation)
-                    .HasForeignKey(d => d.ReportsTo)
-                    .HasConstraintName("FK_Employees_Employees");
+                entity.HasOne(d => d.Role)
+                    .WithMany(p => p.Members)
+                    .HasForeignKey(d => d.RoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Member__RoleId__35BCFE0A");
             });
 
             modelBuilder.Entity<Order>(entity =>
             {
-                entity.Property(e => e.OrderId).HasColumnName("OrderID");
+                entity.ToTable("Order");
 
-                entity.Property(e => e.CustomerId)
-                    .HasMaxLength(5)
-                    .HasColumnName("CustomerID")
-                    .IsFixedLength();
-
-                entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
-
-                entity.Property(e => e.Freight)
-                    .HasColumnType("money")
-                    .HasDefaultValueSql("((0))");
+                entity.Property(e => e.Freight).HasColumnType("decimal(10, 2)");
 
                 entity.Property(e => e.OrderDate).HasColumnType("datetime");
 
                 entity.Property(e => e.RequiredDate).HasColumnType("datetime");
 
-                entity.Property(e => e.ShipAddress).HasMaxLength(60);
-
-                entity.Property(e => e.ShipCity).HasMaxLength(15);
-
-                entity.Property(e => e.ShipCountry).HasMaxLength(15);
-
-                entity.Property(e => e.ShipName).HasMaxLength(40);
-
-                entity.Property(e => e.ShipPostalCode).HasMaxLength(10);
-
-                entity.Property(e => e.ShipRegion).HasMaxLength(15);
-
                 entity.Property(e => e.ShippedDate).HasColumnType("datetime");
 
-                entity.HasOne(d => d.Customer)
+                entity.HasOne(d => d.Member)
                     .WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.CustomerId)
-                    .HasConstraintName("FK_Orders_Customers");
-
-                entity.HasOne(d => d.Employee)
-                    .WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK_Orders_Employees");
+                    .HasForeignKey(d => d.MemberId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Order__MemberId__3A81B327");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
             {
-                entity.HasKey(e => new { e.OrderId, e.ProductId })
-                    .HasName("PK_Order_Details");
+                entity.ToTable("OrderDetail");
 
-                entity.ToTable("Order Details");
+                entity.Property(e => e.Discount).HasColumnType("decimal(5, 2)");
 
-                entity.Property(e => e.OrderId).HasColumnName("OrderID");
-
-                entity.Property(e => e.ProductId).HasColumnName("ProductID");
-
-                entity.Property(e => e.Quantity).HasDefaultValueSql("((1))");
-
-                entity.Property(e => e.UnitPrice).HasColumnType("money");
+                entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.OrderId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Order_Details_Orders");
+                    .HasConstraintName("FK__OrderDeta__Order__3D5E1FD2");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Order_Details_Products");
+                    .HasConstraintName("FK__OrderDeta__Produ__3E52440B");
             });
+
+            modelBuilder.Entity<OrderDetail>()
+            .HasKey(od => new { od.OrderId, od.ProductId }); // Khóa chính kết hợp
+
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.OrderDetails)
+                .WithOne()
+                .HasForeignKey(od => od.OrderId); // Liên kết với Order qua OrderId
 
             modelBuilder.Entity<Product>(entity =>
             {
-                entity.Property(e => e.ProductId).HasColumnName("ProductID");
+                entity.ToTable("Product");
 
-                entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+                entity.Property(e => e.ProductName).HasMaxLength(100);
 
-                entity.Property(e => e.ProductName).HasMaxLength(40);
+                entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
 
-                entity.Property(e => e.QuantityPerUnit).HasMaxLength(20);
-
-                entity.Property(e => e.ReorderLevel).HasDefaultValueSql("((0))");
-
-                entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
-
-                entity.Property(e => e.UnitPrice)
-                    .HasColumnType("money")
-                    .HasDefaultValueSql("((0))");
-
-                entity.Property(e => e.UnitsInStock).HasDefaultValueSql("((0))");
-
-                entity.Property(e => e.UnitsOnOrder).HasDefaultValueSql("((0))");
-
-                entity.HasOne(d => d.Category)
-                    .WithMany(p => p.Products)
-                    .HasForeignKey(d => d.CategoryId)
-                    .HasConstraintName("FK_Products_Categories");
+                entity.Property(e => e.Weight).HasColumnType("decimal(10, 2)");
             });
+
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B61609A647E16")
+                    .IsUnique();
+
+                entity.Property(e => e.RoleName).HasMaxLength(50);
+            });
+
+            // Sửa lỗi phần Category
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.ToTable("Category");
+
+                entity.HasIndex(e => e.categoryName, "UQ__Category__B8B2E9B48A12A0D6")
+                    .IsUnique();
+
+                entity.Property(e => e.categoryName)
+                    .HasMaxLength(100)
+                    .IsRequired();
+            });
+
+            modelBuilder.Entity<Product>()
+            .HasOne(p => p.Category)  // Một Product có một Category
+            .WithMany(c => c.Products)  // Một Category có nhiều Product
+            .HasForeignKey(p => p.CategoryId)  // Khóa ngoại là CategoryId trong Product
+            .OnDelete(DeleteBehavior.Cascade);
+
 
             OnModelCreatingPartial(modelBuilder);
         }

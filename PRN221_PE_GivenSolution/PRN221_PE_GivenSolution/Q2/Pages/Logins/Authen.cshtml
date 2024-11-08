@@ -1,0 +1,95 @@
+﻿@page "/Login"
+@model Q2.Pages.Logins.AuthenModel
+@{
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập</title>
+    <link rel="stylesheet" href="~/css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <img src="https://via.placeholder.com/80x80" alt="Logo" />
+        </div>
+        <h2>Đăng nhập</h2>
+        <p>Chào mừng trở lại. Đăng nhập để bắt đầu làm việc.</p>
+
+        <form id="loginForm" method="post">
+            @Html.AntiForgeryToken()  <!-- Thêm dòng này để bảo vệ form khỏi CSRF -->
+            <label for="Email">Tài Khoản</label>
+            <input type="email" id="email" name="Email" placeholder="Tài khoản của bạn" required>
+
+            <label for="Password">Mật khẩu</label>
+            <input type="password" id="password" name="Password" placeholder="Mật khẩu của bạn" required>
+
+            <button type="submit" class="login-btn">Đăng nhập</button>
+        </form>
+
+        <div class="alternative-login">
+            <p>Hoặc, đăng nhập thông qua SSO</p>
+            <div class="sso-buttons">
+                <button class="sso google">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="Google logo">
+                    Đăng nhập bằng Google
+                </button>
+                <button class="sso microsoft">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft logo">
+                    Đăng nhập bằng Microsoft
+                </button>
+                <button class="sso apple">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo">
+                    Đăng nhập bằng Apple
+                </button>
+            </div>
+        </div>
+
+        <div class="language-switch">
+            <button>English</button>
+            <button class="active">Tiếng Việt</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Khi người dùng gửi form, chúng ta sẽ xử lý form bằng Ajax
+        $(document).ready(function () {
+            $('#loginForm').submit(function (e) {
+                e.preventDefault(); // Ngừng việc gửi form theo cách truyền thống
+
+                var email = $('#email').val();
+                var password = $('#password').val();
+                var token = $('input[name="__RequestVerificationToken"]').val(); // Lấy CSRF token
+
+                // Gửi dữ liệu bằng Ajax
+                $.ajax({
+                    url: '/Login',  // Đảm bảo URL đúng với route của Razor Page của bạn
+                    method: 'POST',
+                    data: {
+                        Email: email,
+                        Password: password,
+                        __RequestVerificationToken: token // Gửi CSRF token
+                    },
+                    success: function (response) {
+                        // Nếu đăng nhập thành công
+                        if (response.success) {
+                            window.location.href = '/Home';  // Redirect tới trang chính hoặc dashboard
+                        } else {
+                            alert('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Có lỗi xảy ra: ' + error);
+                        alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
