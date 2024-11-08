@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Q2.Model
+﻿namespace Q2.Model
 {
     public partial class Category
     {
-        public Category()
-        {
-            Products = new HashSet<Product>();
-        }
-
-        public int CategoryId { get; set; }
-        public string CategoryName { get; set; } = null!;
-        public string? Description { get; set; }
-        public byte[]? Picture { get; set; }
+        public int categoryId { get; set; }
+        public string categoryName { get; set; }
 
         public virtual ICollection<Product> Products { get; set; }
     }

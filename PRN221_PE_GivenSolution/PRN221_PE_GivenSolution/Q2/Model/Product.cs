@@ -11,17 +11,14 @@ namespace Q2.Model
         }
 
         public int ProductId { get; set; }
-        public string ProductName { get; set; } = null!;
-        public int? SupplierId { get; set; }
         public int? CategoryId { get; set; }
-        public string? QuantityPerUnit { get; set; }
+        public string ProductName { get; set; } = null!;
+        public decimal? Weight { get; set; }
         public decimal? UnitPrice { get; set; }
-        public short? UnitsInStock { get; set; }
-        public short? UnitsOnOrder { get; set; }
-        public short? ReorderLevel { get; set; }
-        public bool Discontinued { get; set; }
+        public int? UnitsInStock { get; set; }
+        public string? Image { get; set; }
 
-        public virtual Category? Category { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        public virtual Category Category { get; set; } // Điều này định nghĩa mối quan hệ
     }
 }
