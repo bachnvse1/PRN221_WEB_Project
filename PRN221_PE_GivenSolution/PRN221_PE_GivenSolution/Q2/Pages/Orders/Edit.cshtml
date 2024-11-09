@@ -1,0 +1,110 @@
+﻿@page "/Orders/Edit"
+@model Q2.Pages.Orders.EditModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Chỉnh sửa đơn hàng";
+}
+<style>
+    form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+    }
+
+        .form-control:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+
+    .btn-primary {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    a {
+        display: inline-block;
+        margin-top: 15px;
+        text-align: center;
+        width: 100%;
+        color: #007bff;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+        a:hover {
+            color: #0056b3;
+        }
+</style>
+<h2>Chỉnh sửa đơn hàng</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label>ID Đơn hàng:</label>
+        <input type="text" asp-for="Order.OrderId" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <label>ID Thành viên:</label>
+        <input type="text" asp-for="Order.MemberId" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Ngày đặt hàng:</label>
+        <input type="date" asp-for="Order.OrderDate" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Ngày yêu cầu:</label>
+        <input type="date" asp-for="Order.RequiredDate" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Ngày giao hàng:</label>
+        <input type="date" asp-for="Order.ShippedDate" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Phí vận chuyển:</label>
+        <input type="text" asp-for="Order.Freight" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+    <a asp-page="/Order/List" class="btn btn-secondary">Hủy bỏ</a>
+</form>
+
+<a href="/Orders/List">Trở lại danh sách đơn hàng</a>
