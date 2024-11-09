@@ -42,13 +42,9 @@ namespace Q2.Model
                     .IsUnique();
 
                 entity.Property(e => e.City).HasMaxLength(50);
-
                 entity.Property(e => e.CompanyName).HasMaxLength(100);
-
                 entity.Property(e => e.Country).HasMaxLength(50);
-
                 entity.Property(e => e.Email).HasMaxLength(100);
-
                 entity.Property(e => e.Password).HasMaxLength(50);
 
                 entity.HasOne(d => d.Role)
@@ -63,11 +59,8 @@ namespace Q2.Model
                 entity.ToTable("Order");
 
                 entity.Property(e => e.Freight).HasColumnType("decimal(10, 2)");
-
                 entity.Property(e => e.OrderDate).HasColumnType("datetime");
-
                 entity.Property(e => e.RequiredDate).HasColumnType("datetime");
-
                 entity.Property(e => e.ShippedDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Member)
@@ -82,8 +75,10 @@ namespace Q2.Model
                 entity.ToTable("OrderDetail");
 
                 entity.Property(e => e.Discount).HasColumnType("decimal(5, 2)");
-
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
+
+                // Configure composite key for OrderDetail
+                entity.HasKey(od => new { od.OrderId, od.ProductId });
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderDetails)
@@ -98,23 +93,18 @@ namespace Q2.Model
                     .HasConstraintName("FK__OrderDeta__Produ__3E52440B");
             });
 
-            modelBuilder.Entity<OrderDetail>()
-            .HasKey(od => new { od.OrderId, od.ProductId }); // Khóa chính kết hợp
-
-            modelBuilder.Entity<Order>()
-                .HasMany(o => o.OrderDetails)
-                .WithOne()
-                .HasForeignKey(od => od.OrderId); // Liên kết với Order qua OrderId
-
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.ToTable("Product");
 
                 entity.Property(e => e.ProductName).HasMaxLength(100);
-
                 entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
-
                 entity.Property(e => e.Weight).HasColumnType("decimal(10, 2)");
+
+                entity.HasOne(p => p.Category)
+                    .WithMany(c => c.Products)
+                    .HasForeignKey(p => p.CategoryId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Role>(entity =>
@@ -125,7 +115,6 @@ namespace Q2.Model
                 entity.Property(e => e.RoleName).HasMaxLength(50);
             });
 
-            // Sửa lỗi phần Category
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.ToTable("Category");
@@ -137,13 +126,6 @@ namespace Q2.Model
                     .HasMaxLength(100)
                     .IsRequired();
             });
-
-            modelBuilder.Entity<Product>()
-            .HasOne(p => p.Category)  // Một Product có một Category
-            .WithMany(c => c.Products)  // Một Category có nhiều Product
-            .HasForeignKey(p => p.CategoryId)  // Khóa ngoại là CategoryId trong Product
-            .OnDelete(DeleteBehavior.Cascade);
-
 
             OnModelCreatingPartial(modelBuilder);
         }

@@ -20,18 +20,48 @@ namespace Q2.Pages.Home
         public List<Product> Products { get; set; } = new List<Product>();
         public List<string> Categories { get; set; } = new List<string>();
 
-        public void OnGet(string searchQuery, string selectedCategory)
+        public void OnGet(string searchQuery, string selectedCategory, int pages = 1)
         {
-            // Lưu các giá trị từ URL hoặc form vào biến
+            /* // Lưu các giá trị từ URL hoặc form vào biến
+             SearchQuery = searchQuery;
+             SelectedCategory = selectedCategory;
+
+             // Lấy danh sách các danh mục từ bảng Categories
+             Categories = _context.Categories
+                 .Select(c => c.categoryName) // Lấy tên danh mục (hoặc theo cấu trúc bảng của bạn)
+                 .ToList();
+
+             // Truy vấn sản phẩm dựa trên searchQuery và selectedCategory
+             var query = _context.Products.AsQueryable();
+
+             if (!string.IsNullOrEmpty(searchQuery))
+             {
+                 query = query.Where(p => p.ProductName.Contains(searchQuery));
+             }
+
+             if (!string.IsNullOrEmpty(selectedCategory))
+             {
+                 var category = _context.Categories.FirstOrDefault(c => c.categoryName == SelectedCategory);
+                 if (category != null)
+                 {
+                     int categoryId = category.categoryId;
+                     query = query.Where(p => p.CategoryId == categoryId); // Lọc theo tên danh mục
+                 }
+             }
+
+             Products = query.ToList();*/
+
+            int pageSize = 8; // Số lượng sản phẩm mỗi trang
+            int skip = (pages - 1) * pageSize; // Số sản phẩm bỏ qua dựa trên trang hiện tại
+
             SearchQuery = searchQuery;
             SelectedCategory = selectedCategory;
 
-            // Lấy danh sách các danh mục từ bảng Categories
+            // Lấy danh sách các danh mục
             Categories = _context.Categories
-                .Select(c => c.categoryName) // Lấy tên danh mục (hoặc theo cấu trúc bảng của bạn)
+                .Select(c => c.categoryName)
                 .ToList();
 
-            // Truy vấn sản phẩm dựa trên searchQuery và selectedCategory
             var query = _context.Products.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchQuery))
@@ -45,11 +75,18 @@ namespace Q2.Pages.Home
                 if (category != null)
                 {
                     int categoryId = category.categoryId;
-                    query = query.Where(p => p.CategoryId == categoryId); // Lọc theo tên danh mục
+                    query = query.Where(p => p.CategoryId == categoryId);
                 }
             }
 
-            Products = query.ToList();
+            // Lấy sản phẩm cho trang hiện tại
+            Products = query.Skip(skip).Take(pageSize).ToList();
+
+            // Lấy tổng số trang
+            int totalProducts = query.Count();
+            ViewData["TotalPages"] = (int)Math.Ceiling(totalProducts / (double)pageSize);
+            ViewData["CurrentPage"] = pages;
+
         }
 
 
@@ -113,6 +150,42 @@ namespace Q2.Pages.Home
                 // Trả về phản hồi lỗi nếu không tìm thấy sản phẩm
                 return new JsonResult(new { success = false, message = "Sản phẩm không tồn tại." });
             }
+        }
+
+        // New method to add a product
+        public IActionResult OnPostAddProduct(string productName, string productPrice, string productWeight, string productImage, string categoryName)
+        {
+            // Validate the data
+            if (string.IsNullOrEmpty(productName) || string.IsNullOrEmpty(productPrice) || string.IsNullOrEmpty(productWeight))
+            {
+                return new JsonResult(new { success = false, message = "Tên sản phẩm, giá và cân nặng là bắt buộc." });
+            }
+
+
+            // Convert price and weight to appropriate types
+            decimal unitPrice;
+            decimal weight;
+            if (!decimal.TryParse(productPrice, out unitPrice) || !decimal.TryParse(productWeight, out weight))
+            {
+                return new JsonResult(new { success = false, message = "Giá hoặc cân nặng không hợp lệ." });
+            }
+
+            // Create new product object
+            var newProduct = new Product
+            {
+                ProductName = productName,
+                UnitPrice = unitPrice,
+                Weight = weight,
+                Image = productImage,
+                CategoryId = _context.Categories.FirstOrDefault(x => x.categoryName == categoryName).categoryId
+            };
+
+            // Add new product to the database
+            _context.Products.Add(newProduct);
+            _context.SaveChanges();
+
+            // Return success response
+            return new JsonResult(new { success = true, message = "Sản phẩm đã được thêm thành công." });
         }
 
     }

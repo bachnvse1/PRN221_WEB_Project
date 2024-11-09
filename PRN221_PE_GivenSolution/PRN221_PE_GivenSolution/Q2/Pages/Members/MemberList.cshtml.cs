@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using Q2.Model;  // Thêm namespace của Model của bạn
+using Q2.Model;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Q2.Pages.Members
 {
@@ -9,35 +12,68 @@ namespace Q2.Pages.Members
     {
         private readonly DBContext _context;
 
-        // Thêm thuộc tính để lưu danh sách thành viên
+        // List of members for display
         public List<Member> Members { get; set; } = new List<Member>();
+        public List<Role> Roles { get; set; } = new List<Role>();
 
-        // Constructor nhận DbContext
+        // Constructor to initialize DBContext
         public MemberListModel()
         {
             _context = new DBContext();
         }
 
-        // Phương thức OnGet để lấy dữ liệu thành viên
+        // OnGet method to fetch members
         public void OnGet()
         {
-            // Lấy tất cả thành viên từ cơ sở dữ liệu (bạn có thể thay đổi câu lệnh này theo yêu cầu)
+            // Get all members and roles for display
             Members = _context.Members.Include(m => m.Role).ToList();
+            Roles = _context.Roles.ToList();  // Fetch roles for the select options
         }
 
-        public async Task<IActionResult> OnGetEditAsync(int memberId)
+        [HttpPost]
+        public async Task<IActionResult> OnPostAsync(
+            string email,
+            string companyName,
+            string city,
+            string country,
+            int roleId,
+            string password)  // Removed image
         {
-            var member = await _context.Members.FindAsync(memberId);
-            if (member == null)
+            // Check if the required fields are missing
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(companyName) || string.IsNullOrEmpty(city) || string.IsNullOrEmpty(country) || roleId == 0 || string.IsNullOrEmpty(password))
             {
-                return NotFound();
+                return new JsonResult(new { success = false, message = "Dữ liệu không hợp lệ." });
             }
 
-            // Chuyển hướng tới trang Edit
-            return RedirectToPage("/Member/Edit", new { memberId = member.MemberId });
+            // Check if the email already exists in the database
+            var existingMember = await _context.Members.FirstOrDefaultAsync(m => m.Email == email);
+            if (existingMember != null)
+            {
+                return new JsonResult(new { success = false, message = "Email đã tồn tại. Vui lòng chọn email khác." });
+            }
+
+            // Create a new Member object and assign values
+            var newMember = new Member
+            {
+                Email = email,
+                CompanyName = companyName,
+                City = city,
+                Country = country,
+                RoleId = roleId,
+                Password = password  // You may want to hash the password before saving
+            };
+
+            // Add the new member to the database
+            _context.Members.Add(newMember);
+            await _context.SaveChangesAsync();
+
+            // Return a success response
+            return new JsonResult(new { success = true, message = "Thêm thành viên thành công!" });
         }
 
-        // Action xử lý xóa (Delete)
+
+
+        // Handle deleting a member
         public async Task<IActionResult> OnPostDeleteAsync(int memberId)
         {
             var member = await _context.Members.FindAsync(memberId);
@@ -47,7 +83,6 @@ namespace Q2.Pages.Members
                 await _context.SaveChangesAsync();
             }
 
-            // Sau khi xóa, quay lại danh sách thành viên
             return RedirectToPage();
         }
     }

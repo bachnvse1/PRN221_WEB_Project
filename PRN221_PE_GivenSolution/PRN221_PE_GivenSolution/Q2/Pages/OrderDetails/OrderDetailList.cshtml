@@ -1,0 +1,70 @@
+﻿@page "/OrderDetails/List"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Q2.Pages.OrderDetails.OrderDetailListModel
+@{
+    ViewData["Title"] = "Danh sách chi tiết đơn hàng";
+}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Đơn Hàng</title>
+    <link rel="stylesheet" href="~/css/member.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<h2 style="text-align:center; font-weight:bold; color:red;">Danh sách chi tiết đơn hàng</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID Đơn hàng</th>
+            <th>ID Sản phẩm</th>
+            <th>Giá đơn vị</th>
+            <th>Số lượng</th>
+            <th>Giảm giá</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var detail in Model.OrderDetails)
+        {
+            <tr>
+                <td>@detail.OrderId</td>
+                <td>@detail.ProductId</td>
+                <td>@detail.UnitPrice.ToString("C")</td>
+                <td>@detail.Quantity</td>
+                <td>@(detail.Discount.HasValue ? (detail.Discount.Value) + "%" : "N/A")</td>
+                <td>
+                    <!-- Nút Edit -->
+                    <a href="/OrderDetails/Edit?orderId=@detail.OrderId&productId=@detail.ProductId" class="edit-button">Sửa</a>
+
+                    <!-- Nút Delete -->
+                    <form method="post" asp-page-handler="Delete" asp-route-orderId="@detail.OrderId" asp-route-productId="@detail.ProductId" class="action-form">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa chi tiết đơn hàng này?');">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a href="/Orders/List" class="btn btn-primary" style="margin-bottom: 15px; margin-top:50px;">Trở lại danh sách đơn hàng</a>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Initialize DataTables with pageLength set to 5
+        $('.table').DataTable({
+            paging: true,         // Enable pagination
+            searching: true,      // Enable search bar
+            ordering: true,       // Enable sorting
+            info: true,           // Show table info (like "Showing 1 to 10 of 50 entries")
+            pageLength: 5         // Set the number of records per page to 5
+        });
+    });
+</script>

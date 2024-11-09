@@ -11,6 +11,157 @@
     <title>Trang Home</title>
     <link rel="stylesheet" href="~/css/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Dark background */
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Close Button */
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                display: block;
+                font-weight: bold;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* Button Styling */
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+            .btn-success:hover, .btn-primary:hover {
+                opacity: 0.8;
+            }
+
+        /* Text Alignment */
+        .text-center {
+            text-align: center;
+        }
+
+/* General pagination styling */
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Pagination buttons */
+.pagination-button {
+    display: inline-block;
+    padding: 12px 20px;
+    margin: 0 8px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover effect for buttons */
+.pagination-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.1);
+}
+
+/* Disabled state for pagination */
+.pagination-button.disabled {
+    background-color: #d6d6d6;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+/* Pagination info (current page) */
+.pagination-info {
+    display: inline-block;
+    padding: 12px 20px;
+    font-size: 16px;
+    background-color: transparent;
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Styling for active pagination buttons */
+.pagination-button.active {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Add some spacing between page numbers and navigation buttons */
+.pagination a,
+.pagination span {
+    margin: 0 10px;
+}
+
+/* Tooltip effect on hover for page number */
+.pagination-button:hover {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+
+    .pagination-button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+}
+
+    </style>
 </head>
 <body>
     <div class="container">
@@ -24,8 +175,8 @@
                 <ul>
                     <li><a href="#"><i class="fas fa-box"></i> Sản phẩm</a></li>
                     <li><a href="#"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
-                    <li><a href="#"><i class="fas fa-list"></i> Order</a></li>
-                    <li><a href="#"><i class="fas fa-receipt"></i> Order Detail</a></li>
+                    <li><a href="/Orders/List"><i class="fas fa-list"></i> Đơn hàng</a></li>
+                    <li><a href="/OrderDetails/List"><i class="fas fa-receipt"></i> Chi tiết đơn hàng</a></li>
                     <li><a href="/Member/List"><i class="fas fa-user-circle"></i> Tài khoản</a></li>
                 </ul>
             </nav>
@@ -56,6 +207,70 @@
                         }
                     </select>
                 </form>
+                <!-- Button to open "Add Product" modal -->
+                <button id="add-product-btn" class="btn btn-success">Thêm Sản Phẩm</button>
+
+                <div class="pagination">
+                    @if (ViewData["CurrentPage"] != null && ViewData["TotalPages"] != null)
+                    {
+                        int currentPage = (int)ViewData["CurrentPage"];
+                        int totalPages = (int)ViewData["TotalPages"];
+
+                        if (currentPage > 1)
+                        {
+                            <a href="?page=@(currentPage - 1)&searchQuery=@Model.SearchQuery&selectedCategory=@Model.SelectedCategory" class="pagination-button">Trước</a>
+                        }
+
+                        <span class="pagination-info">@currentPage / @totalPages</span>
+
+                        if (currentPage < totalPages)
+                        {
+                            <a href="?searchQuery=@Model.SearchQuery&selectedCategory=@Model.SelectedCategory&pages=@(currentPage + 1)" class="pagination-button">Tiếp theo</a>
+                        }
+                    }
+                </div>
+
+    
+                <!-- Modal for Adding Product -->
+                <div id="add-product-modal" class="modal-overlay" style="display: none;">
+                    <div class="modal-content">
+                        <button class="close-modal" aria-label="Close Modal">×</button>
+                        <h2>Thêm Sản Phẩm</h2>
+                        <form id="add-product-form" method="post" action="/Home?handler=AddProduct">
+                            @Html.AntiForgeryToken()
+                            <div class="form-group">
+                                <label for="ProductName">Tên sản phẩm:</label>
+                                <input type="text" id="ProductName" name="productName" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="UnitPrice">Giá:</label>
+                                <input type="text" id="UnitPrice" name="productPrice" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="Weight">Cân nặng:</label>
+                                <input type="text" id="Weight" name="productWeight" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="Image">Hình ảnh:</label>
+                                <input type="text" id="Image" name="productImage" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="CategoryId">Danh mục:</label>
+                                <select name="categoryName" class="form-control" required>
+                                    @foreach (var category in Model.Categories)
+                                    {
+                                        <option value="@category">@category</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
 
                 <!-- Hiển thị sản phẩm -->
                 <div class="product-list">
@@ -96,23 +311,23 @@
                 @Html.AntiForgeryToken()
                 <div class="form-group">
                     <label for="ProductName">Tên sản phẩm:</label>
-                    <input type="text" id="ProductName" name="productName" class="form-control" />
+                    <input type="text" id="ProductNameDetail" name="productName" class="form-control" />
                 </div>
                 <div class="form-group">
                     <label for="UnitPrice">Giá:</label>
-                    <input type="text" id="UnitPrice" name="productPrice" class="form-control" />
+                    <input type="text" id="UnitPriceDetail" name="productPrice" class="form-control" />
                 </div>
                 <div class="form-group">
                     <label for="Weight">Cân nặng:</label>
-                    <input type="text" id="Weight" name="productWeight" class="form-control" />
+                    <input type="text" id="WeightDetail" name="productWeight" class="form-control" />
                 </div>
                 <div class="form-group">
                     <label for="Image">Hình ảnh:</label>
-                    <input type="text" id="Image" name="productImage" class="form-control" />
+                    <input type="text" id="ImageDetail" name="productImage" class="form-control" />
                 </div>
                 <div class="form-group" style="display:none;">
                     <label for="productId"></label>
-                    <input type="number" id="Id" name="productId" class="form-control" readonly/>
+                    <input type="number" id="IdDetail" name="productId" class="form-control" readonly />
                 </div>
                 <!-- Nút Update và Remove ở giữa -->
                 <div class="form-group text-center">
@@ -121,6 +336,9 @@
             </form>
         </div>
     </div>
+
+
+
 
 
 
@@ -154,11 +372,11 @@
 
                         // Điền dữ liệu sản phẩm vào modal
                         $('#modal-product-name').text(product.productName);
-                        $('#ProductName').val(product.productName);
-                        $('#UnitPrice').val(product.unitPrice);
-                        $('#Weight').val(product.weight);
-                        $('#Image').val(product.image);
-                        $('#Id').val(product.productId);
+                        $('#ProductNameDetail').val(product.productName);
+                        $('#UnitPriceDetail').val(product.unitPrice);
+                        $('#WeightDetail').val(product.weight);
+                        $('#ImageDetail').val(product.image);
+                        $('#IdDetail').val(product.productId);
 
                         // Hiển thị modal
                         $('#product-detail-modal').css("display", "flex");
@@ -205,7 +423,48 @@
 
         });
 
+        $(document).ready(function () {
+            // Khi bấm vào nút "Thêm sản phẩm"
+            $('#add-product-btn').on('click', function () {
+                // Hiển thị modal
+                $('#add-product-modal').css("display", "flex");
+            });
 
+            // Đóng modal khi nhấn nút "Đóng"
+            $('.close-modal').on('click', function () {
+                $('#add-product-modal').hide();
+            });
+
+            // Thêm sự kiện khi người dùng bấm "Thêm sản phẩm"
+            $('#add-product-form').on('submit', function (e) {
+                e.preventDefault(); // Ngừng hành động gửi form mặc định
+
+                // Lấy dữ liệu từ form
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: '/Home?handler=AddProduct',
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            alert("Sản phẩm đã được thêm thành công!");
+                            location.reload();  // Reload trang để cập nhật danh sách sản phẩm
+                        } else {
+                            alert("Có lỗi xảy ra khi thêm sản phẩm.");
+                        }
+                    },
+                    error: function () {
+                        alert("Đã có lỗi xảy ra.");
+                    }
+                });
+            });
+        });
+
+
+        function logPageValue(page) {
+            console.log("Page value being sent: ", page);
+            }
 
     </script>
 

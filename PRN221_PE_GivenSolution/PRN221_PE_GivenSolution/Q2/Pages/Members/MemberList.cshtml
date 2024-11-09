@@ -1,9 +1,7 @@
 ﻿@page "/Member/List"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model Q2.Pages.Members.MemberListModel
-@{
 
-}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,9 +9,166 @@
     <link rel="stylesheet" href="~/css/member.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <h2 style="text-align:center; font-weight:bold; color:red;">Danh sách người dùng</h2>
 
+<style>
+    /* Style for the modal background */
+    .modal {
+        display: none;  /* Hidden by default */
+        position: fixed;  /* Stay in place */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);  /* Semi-transparent background */
+        z-index: 999;  /* Ensure it's on top of other content */
+        overflow: auto;  /* Enable scrolling if needed */
+    }
 
+    /* Modal content container */
+    .modal-content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        width: 400px;
+        margin: 10% auto;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Close button for modal */
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #aaa;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Form label */
+    label {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    /* Input fields and select */
+    input[type="email"],
+    input[type="text"],
+    select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    /* Input focus effect */
+    input[type="email"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    /* Submit button */
+    .btn {
+        width: 100%;
+        padding: 12px;
+        background-color: #28a745;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    /* Hover effect for button */
+    .btn:hover {
+        background-color: #218838;
+    }
+</style>
+
+
+<!-- Button to trigger modal -->
+<a href="javascript:void(0);" class="btn btn-success" style="margin: 15px 0; width:8%;" onclick="openAddUserModal()">Thêm người dùng</a>
+
+<!-- Modal for Add User Form -->
+<div id="addUserModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddUserModal()">&times;</span>
+        <h2>Thêm người dùng mới</h2>
+
+        <form id="addUserForm">
+            @Html.AntiForgeryToken()
+
+            <!-- Email Field -->
+            <div>
+                <label for="Email">Email:</label>
+                <input type="email" id="Email" name="Email" required />
+            </div>
+
+            <!-- Company Name Field -->
+            <div>
+                <label for="CompanyName">Tên công ty:</label>
+                <input type="text" id="CompanyName" name="CompanyName" required />
+            </div>
+
+            <!-- City Field -->
+            <div>
+                <label for="City">Thành phố:</label>
+                <input type="text" id="City" name="City" required />
+            </div>
+
+            <!-- Country Field -->
+            <div>
+                <label for="Country">Quốc gia:</label>
+                <input type="text" id="Country" name="Country" required />
+            </div>
+
+            <!-- Role Field -->
+            <div>
+                <label for="RoleId">Vai trò:</label>
+                <select id="RoleId" name="RoleId" required>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <option value="@role.RoleId">@role.RoleName</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="Password">Mật khẩu:</label>
+                <input type="password" id="Password" name="Password" required />
+            </div>
+
+            <!-- Image Upload Field -->
+            <div>
+                <label for="Image">Ảnh đại diện:</label>
+                <input type="file" id="Image" name="Image" accept="image/*" />
+            </div>
+
+            <button type="button" onclick="submitAddUserForm()" class="btn btn-success">Thêm người dùng</button>
+        </form>
+
+    </div>
+</div>
+
+<!-- Table to display users -->
 <table class="table">
     <thead>
         <tr>
@@ -35,18 +190,117 @@
                 <td>@member.CompanyName</td>
                 <td>@member.City</td>
                 <td>@member.Country</td>
-                <td>@member.Role.RoleName</td> <!-- Hiển thị tên vai trò -->
+                <td>@member.Role.RoleName</td>
                 <td>
-                    <!-- Nút Edit -->
+                    <!-- Edit Button -->
                     <a href="/Member/Edit?memberId=@member.MemberId" class="edit-button">Sửa</a>
 
-                    <!-- Nút Delete -->
+                    <!-- Delete Button -->
                     <form method="post" asp-page-handler="Delete" asp-route-memberId="@member.MemberId" class="action-form">
                         <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa thành viên này?');">Xóa</button>
                     </form>
                 </td>
-
             </tr>
         }
     </tbody>
 </table>
+
+
+<!-- Back to Home Button -->
+<a href="/Home" class="btn btn-primary" style="margin-bottom: 15px; margin-top: 50px;">Trở lại trang chủ</a>
+
+<!-- Add the necessary JavaScript to handle modal and AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+
+
+<script>
+    // Open the modal to add user
+    function openAddUserModal() {
+        document.getElementById("addUserModal").style.display = "block";
+    }
+
+    // Close the modal
+    function closeAddUserModal() {
+        document.getElementById("addUserModal").style.display = "none";
+    }
+
+    // Handle form submission using AJAX
+    function submitAddUserForm() {
+        var formData = $("#addUserForm").serialize();  // Serialize the form data
+
+        // Get the anti-forgery token from the hidden field
+        var token = $("input[name='__RequestVerificationToken']").val();
+
+        $.ajax({
+            url: '/Member/List',  // The URL for your Razor Page handler
+            type: 'POST',
+            data: formData,
+            headers: {
+                'RequestVerificationToken': token  // Include the token in the headers
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert("Thêm thành viên thành công!");
+                    location.reload(); // Reload the page to show the updated list
+                } else {
+                    alert("Có lỗi xảy ra. Vui lòng thử lại.");
+                }
+            },
+            error: function () {
+                alert("Đã có lỗi khi gửi dữ liệu.");
+            }
+        });
+    }
+</script>
+
+
+<script>
+    $(document).ready(function () {
+        // Initialize DataTables with pageLength set to 5
+        $('.table').DataTable({
+            paging: true,         // Enable pagination
+            searching: true,      // Enable search bar
+            ordering: true,       // Enable sorting
+            info: true,           // Show table info (like "Showing 1 to 10 of 50 entries")
+            pageLength: 5         // Set the number of records per page to 5
+        });
+    });
+</script>
+
+
+
+
+<!-- Add styles for modal -->
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        width: 400px;
+        margin: 10% auto;
+        position: relative;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+</style>
