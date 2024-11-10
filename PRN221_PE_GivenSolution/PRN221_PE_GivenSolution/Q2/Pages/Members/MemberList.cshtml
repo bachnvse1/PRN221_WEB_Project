@@ -1,7 +1,10 @@
 ﻿@page "/Member/List"
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model Q2.Pages.Members.MemberListModel
-
+@{
+    var userEmail = HttpContext.Session.GetString("UserEmail");  // Lấy email từ session
+    var isAdmin = userEmail == "admin@example.com";  // Kiểm tra xem có phải admin không
+}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,9 +105,12 @@
     }
 </style>
 
+@if(isAdmin)
+{
+    <!-- Button to trigger modal -->
+    <a href="javascript:void(0);" class="btn btn-success" style="margin: 15px 0; width:8%;" onclick="openAddUserModal()">Thêm người dùng</a>
+}
 
-<!-- Button to trigger modal -->
-<a href="javascript:void(0);" class="btn btn-success" style="margin: 15px 0; width:8%;" onclick="openAddUserModal()">Thêm người dùng</a>
 
 <!-- Modal for Add User Form -->
 <div id="addUserModal" class="modal" style="display:none;">
@@ -196,9 +202,13 @@
                     <a href="/Member/Edit?memberId=@member.MemberId" class="edit-button">Sửa</a>
 
                     <!-- Delete Button -->
-                    <form method="post" asp-page-handler="Delete" asp-route-memberId="@member.MemberId" class="action-form">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa thành viên này?');">Xóa</button>
-                    </form>
+                    @if(isAdmin)
+                    {
+                        <form method="post" asp-page-handler="Delete" asp-route-memberId="@member.MemberId" class="action-form">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa thành viên này?');">Xóa</button>
+                        </form>
+                    }
+
                 </td>
             </tr>
         }

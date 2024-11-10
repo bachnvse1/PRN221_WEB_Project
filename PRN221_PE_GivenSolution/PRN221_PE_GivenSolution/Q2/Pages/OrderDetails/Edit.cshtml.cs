@@ -23,7 +23,7 @@ namespace Q2.Pages.OrderDetails
 
         public IActionResult OnGet(int orderId, int productId)
         {
-            // Retrieve order detail by orderId and productId
+
             OrderDetail = _context.OrderDetails.FirstOrDefault(od => od.OrderId == orderId && od.ProductId == productId);
 
             if (OrderDetail == null)
@@ -31,7 +31,7 @@ namespace Q2.Pages.OrderDetails
                 return NotFound();
             }
 
-            // Retrieve list of products
+
             Products = _context.Products.ToList();
 
             return Page();
@@ -39,7 +39,7 @@ namespace Q2.Pages.OrderDetails
 
         public IActionResult OnPostEditOrderDetailAsync()
         {
-            // Retrieve form values if BindProperty is not used for all fields
+
             var orderId = int.Parse(Request.Form["OrderId"]);
             var productId = int.Parse(Request.Form["ProductId"]);
             var unitPrice = decimal.Parse(Request.Form["UnitPrice"]);
@@ -52,15 +52,14 @@ namespace Q2.Pages.OrderDetails
                 return NotFound();
             }
 
-            // Update order detail fields
+
             orderDetailFromDb.UnitPrice = unitPrice;
             orderDetailFromDb.Quantity = quantity;
             orderDetailFromDb.Discount = discount;
 
-            // Save changes to database
+
             _context.SaveChanges();
 
-            // Redirect to the order detail list page
             return RedirectToPage("/OrderDetails/OrderDetailList");
         }
     }

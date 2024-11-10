@@ -3,6 +3,8 @@
 @model Q2.Pages.Orders.OrderListModel
 @{
     ViewData["Title"] = "Danh sách đơn hàng";
+    var userEmail = HttpContext.Session.GetString("UserEmail");  // Lấy email từ session
+    var isAdmin = userEmail == "admin@example.com";  // Kiểm tra xem có phải admin không
 }
 <head>
     <meta charset="UTF-8">
@@ -37,13 +39,17 @@
                 <td>@order.ShippedDate?.ToString("yyyy-MM-dd")</td>
                 <td>@order.Freight?.ToString("C")</td>
                 <td>
-                    <!-- Nút Edit -->
-                    <a href="/Orders/Edit?orderId=@order.OrderId" class="edit-button">Sửa</a>
+                    @if(isAdmin)
+                    {
+                        <!-- Nút Edit -->
+                        <a href="/Orders/Edit?orderId=@order.OrderId" class="edit-button">Sửa</a>
 
-                    <!-- Nút Delete -->
-                    <form method="post" asp-page-handler="Delete" asp-route-orderId="@order.OrderId" class="action-form">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này?');">Xóa</button>
-                    </form>
+                        <!-- Nút Delete -->
+                        <form method="post" asp-page-handler="Delete" asp-route-orderId="@order.OrderId" class="action-form">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này?');">Xóa</button>
+                        </form>
+                    }
+                    
                 </td>
             </tr>
         }

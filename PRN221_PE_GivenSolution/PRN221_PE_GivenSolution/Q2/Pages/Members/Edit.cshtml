@@ -1,7 +1,10 @@
 ﻿@page "/Member/Edit"
 @model Q2.Pages.Members.EditModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
+@{
+    var userEmail = HttpContext.Session.GetString("UserEmail"); 
+    var isAdmin = userEmail == "admin@example.com"; 
+}
 <h2>Chỉnh sửa thành viên</h2>
 <style>
     form {
@@ -85,7 +88,7 @@
 <form method="post" enctype="multipart/form-data" asp-page-handler="EditMember">
     @Html.AntiForgeryToken()
 
-    <input type="hidden" class="form-control" id="MemberId" name="MemberId" value="@Model.Member.MemberId" />
+    <input type="hidden" class="form-control" id="MemberId" name="MemberId" value="@Model.Member.MemberId" readonly/>
 
     <div class="form-group">
         <label for="Email">Email</label>
@@ -106,16 +109,27 @@
         <label for="Country">Quốc gia</label>
         <input type="text" class="form-control" id="Country" name="Country" value="@Model.Member.Country" />
     </div>
+    @if(isAdmin)
+    {
+        <div class="form-group">
+            <label for="RoleId">Vai trò</label>
+            <select class="form-control" id="RoleId" name="RoleId">
+                @foreach (var role in Model.Roles)
+                {
+                    <option value="@role.RoleId" selected="@(role.RoleId == Model.Member.RoleId ? "selected" : "")">@role.RoleName</option>
+                }
+            </select>
+        </div>
+    } else
+    {
+        <div class="form-group">
+            <label for="RoleId">Vai trò</label>
+            <select class="form-control" id="RoleId" name="RoleId">
+                <option value="@Model.Member.RoleId">@Model.Roles.Where(x=>x.RoleId == Model.Member.RoleId).FirstOrDefault().RoleName</option>
+            </select>
+        </div>
+    }
 
-    <div class="form-group">
-        <label for="RoleId">Vai trò</label>
-        <select class="form-control" id="RoleId" name="RoleId">
-            @foreach (var role in Model.Roles)
-            {
-                <option value="@role.RoleId" selected="@(role.RoleId == Model.Member.RoleId ? "selected" : "")">@role.RoleName</option>
-            }
-        </select>
-    </div>
 
     <!-- Thêm trường mật khẩu -->
     <div class="form-group">

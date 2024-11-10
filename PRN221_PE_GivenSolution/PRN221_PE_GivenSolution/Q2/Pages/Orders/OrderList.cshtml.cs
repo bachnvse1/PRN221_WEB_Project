@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Q2.Model;
 
 namespace Q2.Pages.Orders
@@ -17,24 +18,37 @@ namespace Q2.Pages.Orders
 
         public void OnGet()
         {
-            // Retrieve list of orders from the database
-            Orders = dbContext.Orders.ToList();
+          
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            var isAdmin = userEmail == "admin@example.com"; 
+
+            if (isAdmin)
+            {
+             
+                Orders = dbContext.Orders.Include(o => o.Member).ToList();
+            }
+            else
+            {
+                
+                var userId = HttpContext.Session.GetInt32("UserId");
+                Orders = dbContext.Orders.Where(o => o.MemberId == userId).ToList();
+            }
         }
 
         public IActionResult OnPostDelete(int orderId)
         {
-            // Find order by orderId
+           
             var order = dbContext.Orders.FirstOrDefault(o => o.OrderId == orderId);
             if (order == null)
             {
                 return NotFound();
             }
 
-            // Remove order from the database
+           
             dbContext.Orders.Remove(order);
             dbContext.SaveChanges();
 
-            // Refresh the page after deletion
+           
             return RedirectToAction("/Order/List");
         }
     }

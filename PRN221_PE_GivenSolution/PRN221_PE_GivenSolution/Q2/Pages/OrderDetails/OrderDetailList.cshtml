@@ -3,6 +3,9 @@
 @model Q2.Pages.OrderDetails.OrderDetailListModel
 @{
     ViewData["Title"] = "Danh sách chi tiết đơn hàng";
+    var userEmail = HttpContext.Session.GetString("UserEmail");  // Lấy email từ session
+    var isAdmin = userEmail == "admin@example.com";  // Kiểm tra xem có phải admin không
+
 }
 <head>
     <meta charset="UTF-8">
@@ -35,13 +38,17 @@
                 <td>@detail.Quantity</td>
                 <td>@(detail.Discount.HasValue ? (detail.Discount.Value) + "%" : "N/A")</td>
                 <td>
-                    <!-- Nút Edit -->
-                    <a href="/OrderDetails/Edit?orderId=@detail.OrderId&productId=@detail.ProductId" class="edit-button">Sửa</a>
+                    @if(isAdmin)
+                    {
+                        <!-- Nút Edit -->
+                        <a href="/OrderDetails/Edit?orderId=@detail.OrderId&productId=@detail.ProductId" class="edit-button">Sửa</a>
 
-                    <!-- Nút Delete -->
-                    <form method="post" asp-page-handler="Delete" asp-route-orderId="@detail.OrderId" asp-route-productId="@detail.ProductId" class="action-form">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa chi tiết đơn hàng này?');">Xóa</button>
-                    </form>
+                        <!-- Nút Delete -->
+                        <form method="post" asp-page-handler="Delete" asp-route-orderId="@detail.OrderId" asp-route-productId="@detail.ProductId" class="action-form">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa chi tiết đơn hàng này?');">Xóa</button>
+                        </form>
+                    }
+            
                 </td>
             </tr>
         }

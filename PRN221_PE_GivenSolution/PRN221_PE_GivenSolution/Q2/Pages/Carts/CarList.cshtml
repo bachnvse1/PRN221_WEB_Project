@@ -1,0 +1,407 @@
+﻿@page "/Cart"
+@using Q2.Model;
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Q2.Pages.Carts.CartListModel
+
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<h2>Giỏ hàng</h2>
+<style>
+    /* Toàn bộ bảng */
+    .table {
+        width: 100%;
+        margin: 20px 0;
+        border-collapse: collapse;
+        font-family: 'Arial', sans-serif;
+    }
+
+    /* Tiêu đề của bảng */
+    .table thead th {
+        background-color: #28a745;
+        color: #ffffff;
+        font-weight: bold;
+        padding: 12px;
+        text-align: center;
+    }
+
+    /* Dòng dữ liệu */
+    .table tbody td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+
+    /* Dòng khi hover chuột */
+    .table tbody tr:hover {
+        background-color: #f1f1f1;
+        cursor: pointer;
+    }
+
+    /* Cải tiến nút */
+    .btn {
+        padding: 12px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 16px;
+        border-radius: 5px;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .btn:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+
+    /* Tiêu đề chính */
+    h2 {
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    /* Thông báo giỏ hàng trống */
+    .empty-cart {
+        text-align: center;
+        font-size: 18px;
+        color: #6c757d;
+        margin-top: 20px;
+    }
+
+    /* Tóm tắt giỏ hàng */
+    .cart-summary {
+        margin-top: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    /* Nút quay lại trang chủ */
+    .back-home {
+        display: block;
+        width: 200px;
+        margin: 30px auto;
+        text-align: center;
+        padding: 12px;
+        background-color: #17a2b8;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 16px;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .back-home:hover {
+        background-color: #138496;
+        transform: scale(1.05);
+    }
+
+    /* Nút tăng giảm số lượng */
+    .quantity-selector {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .quantity-selector button {
+        background-color: #007bff;
+        color: white;
+        padding: 5px 10px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .quantity-selector button:hover {
+        background-color: #0056b3;
+    }
+
+    .quantity-input {
+        width: 60px;
+        padding: 5px;
+        font-size: 16px;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    /* Container for quantity selector */
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 5px;
+    }
+
+    /* Style for quantity input field */
+    .quantity-input {
+        width: 60px;
+        height: 40px;
+        text-align: center;
+        font-size: 18px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        padding: 5px;
+        background-color: #f9f9f9;
+        margin: 0 10px;
+    }
+
+    /* Button styles for decrease and increase buttons */
+    .quantity-button {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        background-color: #28a745;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+        /* Specific styles for decrease and increase buttons */
+        .quantity-button.decrease {
+            background-color: #dc3545; /* Red for decrease */
+        }
+
+        .quantity-button.increase {
+            background-color: #007bff; /* Blue for increase */
+        }
+
+        /* Hover effects for buttons */
+        .quantity-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+
+    /* Focus style for input */
+    .quantity-input:focus {
+        border-color: #28a745;
+        outline: none;
+    }
+
+    /* Ensure the form buttons inside quantity-selector are aligned */
+    .quantity-form {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Optional: disable the pointer events on the input if it's not meant to be editable */
+    .quantity-input:disabled {
+        pointer-events: none;
+    }
+
+    /* Lớp phủ overlay */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Màu đen mờ */
+        z-index: 999; /* Đảm bảo overlay hiển thị phía trên các phần khác */
+        display: block;
+    }
+
+    /* Modal form */
+    .checkout-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); /* Căn giữa form */
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000; /* Đảm bảo modal hiển thị phía trên overlay */
+        width: 80%;
+        max-width: 600px;
+        box-sizing: border-box;
+    }
+
+    /* Style cho form */
+    .order-form {
+        margin-top: 20px;
+    }
+
+        .order-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .order-form label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .order-form .form-control {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .order-form button {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .order-form button:hover {
+                background-color: #0056b3;
+            }
+
+    /* Nút đóng */
+    .close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        background: none;
+        border: none;
+        color: #aaa;
+        cursor: pointer;
+        transition: color 0.3s;
+        font-weight: bold;
+    }
+
+        .close-button:hover {
+            color: #000;
+        }
+
+        .close-button:focus {
+            outline: none;
+        }
+
+
+</style>
+
+@if (Model.orders != null && Model.orders.Count > 0)
+{
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Giá đơn vị</th>
+                    <th>Số lượng</th>
+                    <th>Tổng cộng</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model.orders)
+                {
+                    <tr>
+                        <td>@order.ProductId</td>
+                        <td>@Model.products.Where(x => x.ProductId == order.ProductId).Select(x => x.ProductName).FirstOrDefault()</td>
+                        <td>@Model.products.Where(x => x.ProductId == order.ProductId).Select(x => x.UnitPrice).FirstOrDefault()</td>
+                    <td>
+                        <div class="quantity-selector">
+                            <form method="post" asp-page-handler="UpdateQuantity" class="quantity-form">
+                                <input type="hidden" name="productId" value="@order.ProductId" />
+                                <input type="hidden" name="quantityChange" value="-1" />
+                                <button type="submit" class="quantity-button decrease">-</button>
+                            </form>
+                            <!-- Input số lượng sản phẩm -->
+                            <input type="number" value="@order.Quantity" class="quantity-input" disabled />
+                            <!-- Form nút tăng số lượng -->
+                            <form method="post" asp-page-handler="UpdateQuantity" class="quantity-form">
+                                <input type="hidden" name="productId" value="@order.ProductId" />
+                                <input type="hidden" name="quantityChange" value="1" />
+                                <button type="submit" class="quantity-button increase">+</button>
+                            </form>
+                        </div>
+                    </td>
+
+                        <td>@(order.Quantity * Model.products.Where(x => x.ProductId == order.ProductId).Select(x => x.UnitPrice).FirstOrDefault())</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    <div class="cart-summary">
+        <p>Tổng cộng: @Model.orders.Sum(o => o.Quantity * Model.products.Where(p => p.ProductId == o.ProductId).Select(p => p.UnitPrice).FirstOrDefault())</p>
+        <!-- Checkout Button -->
+        <form method="post" asp-page-handler="Checkout" class="checkout-form">
+            <button type="submit" class="btn">Thanh toán</button>
+        </form>
+    </div>
+}
+else
+{
+    <p class="empty-cart">Giỏ hàng của bạn hiện đang trống.</p>
+}
+
+<a href="/Home" class="back-home">Quay lại trang chủ</a>
+
+@if (Model.ShowCheckoutForm)
+{
+    <!-- Overlay khi form xuất hiện -->
+    <div class="overlay"></div>
+
+    <!-- Form đặt hàng -->
+    <div class="checkout-modal">
+        <!-- Nút đóng -->
+        <button class="close-button" type="button" onclick="closeCheckoutForm()">×</button>
+
+        <h3>Đặt hàng</h3>
+        <form method="post" asp-page-handler="SubmitOrder" class="order-form">
+            <div class="form-group">
+                <label for="requiredDate">Ngày yêu cầu:</label>
+                <input type="date" id="requiredDate" name="RequiredDate" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label for="shippedDate">Ngày giao hàng:</label>
+                <input type="date" id="shippedDate" name="ShippedDate" class="form-control" required />
+            </div>
+            <button type="submit" class="btn">Xác nhận đơn hàng</button>
+        </form>
+    </div>
+}
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Initialize DataTables with pageLength set to 5
+        $('.table').DataTable({
+            paging: true,         // Enable pagination
+            searching: true,      // Enable search bar
+            ordering: true,       // Enable sorting
+            info: true,           // Show table info (like "Showing 1 to 10 of 50 entries")
+            pageLength: 5         // Set the number of records per page to 5
+        });
+    });
+</script>
+
+<script>
+    // Hàm đóng modal khi nhấn nút "×"
+    function closeCheckoutForm() {
+        // Gửi yêu cầu POST về server để ẩn form hoặc thay đổi trạng thái ShowCheckoutForm
+        window.location.href = '@Url.Page("/Cart", "OnPostCloseCheckout")'; // Gọi hàm trên server để ẩn form
+    }
+</script>
