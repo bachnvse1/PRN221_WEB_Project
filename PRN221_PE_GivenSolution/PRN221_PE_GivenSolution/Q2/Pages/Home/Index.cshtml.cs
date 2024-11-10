@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
+using Q2.Hubs;
 using Q2.Model;
 using System.Linq;
 using System.Text.Json;
@@ -9,13 +11,13 @@ namespace Q2.Pages.Home
     public class IndexModel : PageModel
     {
         private readonly DBContext _context;
-
-        public IndexModel()
+        private readonly IHubContext<ProductsHub> hubContext;
+        public IndexModel(IHubContext<ProductsHub> hubContext)
         {
             _context = new DBContext();
+            this.hubContext = hubContext;
         }
 
-        // Các thuộc tính sẽ lưu kết quả
         public string SearchQuery { get; set; }
         public string SelectedCategory { get; set; }
         public List<Product> Products { get; set; } = new List<Product>();
@@ -23,14 +25,12 @@ namespace Q2.Pages.Home
 
         public void OnGet(string searchQuery, string selectedCategory, int pages = 1)
         {
-
-            int pageSize = 8; // Số lượng sản phẩm mỗi trang
-            int skip = (pages - 1) * pageSize; // Số sản phẩm bỏ qua dựa trên trang hiện tại
+            int pageSize = 8;
+            int skip = (pages - 1) * pageSize;
 
             SearchQuery = searchQuery;
             SelectedCategory = selectedCategory;
 
-            // Lấy danh sách các danh mục
             Categories = _context.Categories
                 .Select(c => c.categoryName)
                 .ToList();
@@ -52,16 +52,12 @@ namespace Q2.Pages.Home
                 }
             }
 
-            // Lấy sản phẩm cho trang hiện tại
             Products = query.Skip(skip).Take(pageSize).ToList();
 
-            // Lấy tổng số trang
             int totalProducts = query.Count();
             ViewData["TotalPages"] = (int)Math.Ceiling(totalProducts / (double)pageSize);
             ViewData["CurrentPage"] = pages;
-
         }
-
 
         public IActionResult OnGetProductDetails(int id)
         {
@@ -89,13 +85,11 @@ namespace Q2.Pages.Home
             decimal unitPrice = decimal.Parse(productPrice);
             decimal weight = decimal.Parse(productWeight);
 
-            // Cập nhật sản phẩm
             product.ProductName = productName;
             product.UnitPrice = unitPrice;
             product.Weight = weight;
             product.Image = productImage;
 
-            // Lưu vào CSDL
             _context.SaveChanges();
             return RedirectToPage("");
         }
@@ -107,35 +101,38 @@ namespace Q2.Pages.Home
                 return new JsonResult(new { success = false, message = "Không tìm thấy sản phẩm." });
             }
 
+
+            var orderDetails = _context.OrderDetails.Where(od => od.ProductId == productId).ToList();
+
+            if (orderDetails.Any())
+            {
+                _context.OrderDetails.RemoveRange(orderDetails); 
+                _context.SaveChanges(); 
+            }
+
+           
             var product = _context.Products.Where(x => x.ProductId == productId).FirstOrDefault();
 
             if (product != null)
             {
-                // Xoá sản phẩm khỏi cơ sở dữ liệu
                 _context.Products.Remove(product);
-                _context.SaveChanges();
-
-                // Trả về phản hồi thành công
+                _context.SaveChanges(); 
+                hubContext.Clients.All.SendAsync("ProductDeleted", productId);
                 return new JsonResult(new { success = true });
             }
             else
             {
-                // Trả về phản hồi lỗi nếu không tìm thấy sản phẩm
                 return new JsonResult(new { success = false, message = "Sản phẩm không tồn tại." });
             }
         }
 
-        // New method to add a product
         public IActionResult OnPostAddProduct(string productName, string productPrice, string productWeight, string productImage, string categoryName)
         {
-            // Validate the data
             if (string.IsNullOrEmpty(productName) || string.IsNullOrEmpty(productPrice) || string.IsNullOrEmpty(productWeight))
             {
                 return new JsonResult(new { success = false, message = "Tên sản phẩm, giá và cân nặng là bắt buộc." });
             }
 
-
-            // Convert price and weight to appropriate types
             decimal unitPrice;
             decimal weight;
             if (!decimal.TryParse(productPrice, out unitPrice) || !decimal.TryParse(productWeight, out weight))
@@ -143,7 +140,6 @@ namespace Q2.Pages.Home
                 return new JsonResult(new { success = false, message = "Giá hoặc cân nặng không hợp lệ." });
             }
 
-            // Create new product object
             var newProduct = new Product
             {
                 ProductName = productName,
@@ -153,11 +149,9 @@ namespace Q2.Pages.Home
                 CategoryId = _context.Categories.FirstOrDefault(x => x.categoryName == categoryName).categoryId
             };
 
-            // Add new product to the database
             _context.Products.Add(newProduct);
             _context.SaveChanges();
 
-            // Return success response
             return new JsonResult(new { success = true, message = "Sản phẩm đã được thêm thành công." });
         }
 
@@ -182,7 +176,6 @@ namespace Q2.Pages.Home
                 order.ProductId = productId;
                 order.Quantity = 1;
                 orders.Add(order);
-
             }
 
             HttpContext.Session.SetString("cart", JsonSerializer.Serialize(orders));

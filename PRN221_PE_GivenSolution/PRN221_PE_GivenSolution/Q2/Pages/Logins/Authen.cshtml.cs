@@ -18,7 +18,6 @@ namespace Q2.Pages.Logins
 
         public void OnGet()
         {
-            // Xóa hết session khi đăng xuất
             HttpContext.Session.Clear();
 
         }
@@ -31,22 +30,20 @@ namespace Q2.Pages.Logins
 
         public IActionResult OnPost()
         {
-            // Kiểm tra thông tin đăng nhập
             var member = _context.Members
-                .FirstOrDefault(x => x.Email == Email && x.Password == Password); // Mật khẩu cần được mã hóa (hash)
+                .FirstOrDefault(x => x.Email == Email && x.Password == Password);
 
             if (member == null)
             {
-                // Trả về lỗi nếu không tìm thấy thành viên
                 return new JsonResult(new { success = false, message = "Email hoặc mật khẩu không đúng." });
             }
             else
             {
-                // Đăng nhập thành công, lưu thông tin vào session
-                HttpContext.Session.SetString("UserEmail", member.Email);
-                HttpContext.Session.SetString("UserId", member.MemberId.ToString()); // Nếu cần lưu ID người dùng
 
-                // Trả về kết quả thành công
+                HttpContext.Session.SetString("UserEmail", member.Email);
+                HttpContext.Session.SetInt32("UserId", member.MemberId); 
+
+
                 return new JsonResult(new { success = true });
             }
         }

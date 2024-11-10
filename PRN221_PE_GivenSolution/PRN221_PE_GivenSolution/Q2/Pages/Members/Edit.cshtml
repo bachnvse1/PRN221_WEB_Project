@@ -2,8 +2,8 @@
 @model Q2.Pages.Members.EditModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
-    var userEmail = HttpContext.Session.GetString("UserEmail");  // Lấy email từ session
-    var isAdmin = userEmail == "admin@example.com";  // Kiểm tra xem có phải admin không
+    var userEmail = HttpContext.Session.GetString("UserEmail"); 
+    var isAdmin = userEmail == "admin@example.com"; 
 }
 <h2>Chỉnh sửa thành viên</h2>
 <style>

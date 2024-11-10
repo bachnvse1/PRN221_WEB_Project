@@ -13,9 +13,9 @@ namespace Q2.Pages.Carts
         public List<Product> products = new List<Product>();
 
         [BindProperty]
-        public int ProductId { get; set; } // ID sản phẩm cần thay đổi
+        public int ProductId { get; set; }
         [BindProperty]
-        public int QuantityChange { get; set; } // Thay đổi số lượng (1 hoặc -1)
+        public int QuantityChange { get; set; }
 
         public CartListModel()
         {
@@ -26,7 +26,6 @@ namespace Q2.Pages.Carts
 
         public void OnGet()
         {
-            // Kiểm tra xem giỏ hàng có tồn tại trong session không
             if (HttpContext.Session.GetString("cart") != null)
             {
                 string data = HttpContext.Session.GetString("cart");
@@ -35,10 +34,8 @@ namespace Q2.Pages.Carts
             }
         }
 
-        // Xử lý khi người dùng gửi form POST để thay đổi số lượng
         public IActionResult OnPost(int productId, int quantityChange)
         {
-            // Deserialize the cart from session, if it exists
             List<OrderDetail> orders = new List<OrderDetail>();
             if (HttpContext.Session.GetString("cart") != null)
             {
@@ -46,106 +43,99 @@ namespace Q2.Pages.Carts
                 orders = JsonSerializer.Deserialize<List<OrderDetail>>(data);
             }
 
-            // Find the product in the cart by ProductId
             var order = orders.FirstOrDefault(o => o.ProductId == productId);
 
             if (order != null)
             {
-                // Change the quantity based on the value provided (positive or negative)
                 order.Quantity += quantityChange;
 
-                // Ensure that quantity is not less than 1
                 if (order.Quantity < 1)
                 {
                     order.Quantity = 1;
                 }
             }
-
-            // If the product is not in the cart, add it
             else
             {
                 order = new OrderDetail
                 {
                     ProductId = productId,
-                    Quantity = 1 // Default to 1 if it's a new item
+                    Quantity = 1
                 };
                 orders.Add(order);
             }
 
-            // Save the updated cart back to session
             HttpContext.Session.SetString("cart", JsonSerializer.Serialize(orders));
 
-            // Redirect to the cart page to show the updated cart
             return RedirectToPage("/Carts/CarList");
         }
 
         public IActionResult OnPostCheckout()
         {
-            // Kiểm tra xem giỏ hàng có tồn tại trong session không
             if (HttpContext.Session.GetString("cart") != null)
             {
                 string data = HttpContext.Session.GetString("cart");
                 orders = JsonSerializer.Deserialize<List<OrderDetail>>(data);
                 products = dbcontext.Products.ToList();
             }
-            // Show the checkout form
             ShowCheckoutForm = true;
             return Page();
         }
 
         public IActionResult OnPostCloseCheckout()
         {
-            // Ẩn form Checkout
             ShowCheckoutForm = false;
             return RedirectToPage("");
         }
 
         public IActionResult OnPostSubmitOrder(DateTime RequiredDate, DateTime ShippedDate)
         {
-            // Lấy userId từ session (ví dụ userId được lưu trong session với key "userId")
-            int? userId = HttpContext.Session.GetInt32("userId");
+            int? userId = HttpContext.Session.GetInt32("UserId");
 
-            // Kiểm tra nếu userId không tồn tại hoặc không hợp lệ
             if (userId == null)
             {
-                // Nếu không có userId trong session, có thể redirect về trang đăng nhập hoặc thông báo lỗi
-                return RedirectToPage("/Login"); // Thay "/Login" bằng trang đăng nhập của bạn
+                return RedirectToPage("/Login");
             }
 
-            // Tạo đơn hàng từ dữ liệu giỏ hàng
             var order = new Order
             {
-                MemberId = userId.Value, // Lấy userId từ session
+                MemberId = userId.Value,
                 OrderDate = DateTime.Now,
                 RequiredDate = RequiredDate,
                 ShippedDate = ShippedDate,
-                Freight = 0 // Phí vận chuyển có thể được tính toán nếu cần
+                Freight = 0
             };
 
-            // Thêm chi tiết đơn hàng từ giỏ hàng
-            foreach (var orderDetail in orders)
+            string data = HttpContext.Session.GetString("cart");
+
+            var orderDetails = orders = JsonSerializer.Deserialize<List<OrderDetail>>(data);
+
+            if (orderDetails == null || !orderDetails.Any())
             {
-                var product = products.FirstOrDefault(p => p.ProductId == orderDetail.ProductId);
+                return RedirectToPage("/Cart");
+            }
+
+            foreach (var orderDetail in orderDetails)
+            {
+                var product = dbcontext.Products.FirstOrDefault(p => p.ProductId == orderDetail.ProductId);
                 if (product != null)
                 {
                     order.OrderDetails.Add(new OrderDetail
                     {
                         ProductId = orderDetail.ProductId,
                         Quantity = orderDetail.Quantity,
-                        //UnitPrice = product.UnitPrice
+                        UnitPrice = (decimal)product.UnitPrice,
+                        Discount = orderDetail.Discount
                     });
                 }
             }
 
-            // Lưu đơn hàng và chi tiết vào cơ sở dữ liệu
             dbcontext.Orders.Add(order);
             dbcontext.SaveChanges();
 
-            // Xóa giỏ hàng trong session sau khi đặt hàng
             HttpContext.Session.Remove("cart");
 
-            // Chuyển hướng tới trang xác nhận hoặc trang chủ
-            return RedirectToPage("/Home");
+            return RedirectToAction("/Home");
         }
+
     }
 }

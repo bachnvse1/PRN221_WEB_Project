@@ -19,7 +19,7 @@ namespace Q2.Pages.Orders
 
         public IActionResult OnGet(int orderId)
         {
-            // Retrieve order details by orderId
+           
             Order = _context.Orders.FirstOrDefault(o => o.OrderId == orderId);
             if (Order == null)
             {
@@ -42,17 +42,17 @@ namespace Q2.Pages.Orders
                 return NotFound();
             }
 
-            // Update order properties
+
             orderFromDb.MemberId = Order.MemberId;
             orderFromDb.OrderDate = Order.OrderDate;
             orderFromDb.RequiredDate = Order.RequiredDate;
             orderFromDb.ShippedDate = Order.ShippedDate;
             orderFromDb.Freight = Order.Freight;
 
-            // Save changes to database
+      
             _context.SaveChanges();
 
-            // Redirect back to the order list page after saving
+          
             return RedirectToAction("/Order/List");
         }
     }

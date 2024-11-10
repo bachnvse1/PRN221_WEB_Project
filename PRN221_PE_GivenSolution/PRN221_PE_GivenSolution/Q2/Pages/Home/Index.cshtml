@@ -329,7 +329,7 @@
                     {
                         foreach (var product in Model.Products)
                         {
-                            <div class="product-item">
+                            <div class="product-item" id="@product.ProductId">
                                 <div class="product-image">
                                     <img src="@product.Image" alt="@product.ProductName" />
                                 </div>
@@ -415,7 +415,7 @@
             <a href="#"><i class="fab fa-instagram"></i></a>
         </div>
     </footer>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -532,5 +532,14 @@
     </script>
 
 
+
+    <script>
+        var connection = new signalR.HubConnectionBuilder().withUrl("/productHubs").build();
+        connection.start();
+        connection.on("ProductDeleted", (productId) => {
+            const e = document.getElementById(productId);
+            e.remove();
+        })
+    </script>
 </body>
 </html>

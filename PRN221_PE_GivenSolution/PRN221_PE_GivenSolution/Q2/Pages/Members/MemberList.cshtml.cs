@@ -16,7 +16,6 @@ namespace Q2.Pages.Members
         public List<Member> Members { get; set; } = new List<Member>();
         public List<Role> Roles { get; set; } = new List<Role>();
 
-        // Constructor to initialize DBContext
         public MemberListModel()
         {
             _context = new DBContext();
@@ -25,20 +24,20 @@ namespace Q2.Pages.Members
         // OnGet method to fetch members
         public void OnGet()
         {
-            var userEmail = HttpContext.Session.GetString("UserEmail");  // Lấy email người dùng từ session
-            var isAdmin = userEmail == "admin@example.com";  // Kiểm tra xem người dùng có phải là admin không
+            var userEmail = HttpContext.Session.GetString("UserEmail"); 
+            var isAdmin = userEmail == "admin@example.com";  
 
-            // Nếu người dùng là admin, lấy tất cả thành viên và vai trò
+        
             if (isAdmin)
             {
-                Members = _context.Members.Include(m => m.Role).ToList();  // Lấy tất cả thành viên và vai trò
-                Roles = _context.Roles.ToList();  // Lấy tất cả vai trò
+                Members = _context.Members.Include(m => m.Role).ToList(); 
+                Roles = _context.Roles.ToList();  
             }
             else
             {
-                // Nếu không phải admin, chỉ lấy thông tin của người đăng nhập
+               
                 Members = _context.Members
-                    .Where(m => m.Email == userEmail)  // Chỉ lấy thông tin của người dùng đang đăng nhập
+                    .Where(m => m.Email == userEmail) 
                     .Include(m => m.Role)
                     .ToList();
             }
@@ -51,22 +50,22 @@ namespace Q2.Pages.Members
             string city,
             string country,
             int roleId,
-            string password)  // Removed image
+            string password) 
         {
-            // Check if the required fields are missing
+           
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(companyName) || string.IsNullOrEmpty(city) || string.IsNullOrEmpty(country) || roleId == 0 || string.IsNullOrEmpty(password))
             {
                 return new JsonResult(new { success = false, message = "Dữ liệu không hợp lệ." });
             }
 
-            // Check if the email already exists in the database
+           
             var existingMember = await _context.Members.FirstOrDefaultAsync(m => m.Email == email);
             if (existingMember != null)
             {
                 return new JsonResult(new { success = false, message = "Email đã tồn tại. Vui lòng chọn email khác." });
             }
 
-            // Create a new Member object and assign values
+            
             var newMember = new Member
             {
                 Email = email,
@@ -74,20 +73,20 @@ namespace Q2.Pages.Members
                 City = city,
                 Country = country,
                 RoleId = roleId,
-                Password = password  // You may want to hash the password before saving
+                Password = password  
             };
 
-            // Add the new member to the database
+            
             _context.Members.Add(newMember);
             await _context.SaveChangesAsync();
 
-            // Return a success response
+            
             return new JsonResult(new { success = true, message = "Thêm thành viên thành công!" });
         }
 
 
 
-        // Handle deleting a member
+      
         public async Task<IActionResult> OnPostDeleteAsync(int memberId)
         {
             var member = await _context.Members.FindAsync(memberId);
