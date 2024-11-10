@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Q2.Model;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Q2.Pages.Logins
 {
@@ -16,6 +18,9 @@ namespace Q2.Pages.Logins
 
         public void OnGet()
         {
+            // Xóa hết session khi đăng xuất
+            HttpContext.Session.Clear();
+
         }
 
         [BindProperty]
@@ -26,7 +31,10 @@ namespace Q2.Pages.Logins
 
         public IActionResult OnPost()
         {
-            var member = _context.Members.FirstOrDefault(x => x.Email == Email && x.Password == Password);
+            // Kiểm tra thông tin đăng nhập
+            var member = _context.Members
+                .FirstOrDefault(x => x.Email == Email && x.Password == Password); // Mật khẩu cần được mã hóa (hash)
+
             if (member == null)
             {
                 // Trả về lỗi nếu không tìm thấy thành viên
@@ -34,8 +42,9 @@ namespace Q2.Pages.Logins
             }
             else
             {
-                // Đăng nhập thành công, bạn có thể lưu thông tin người dùng vào session hoặc cookie
+                // Đăng nhập thành công, lưu thông tin vào session
                 HttpContext.Session.SetString("UserEmail", member.Email);
+                HttpContext.Session.SetString("UserId", member.MemberId.ToString()); // Nếu cần lưu ID người dùng
 
                 // Trả về kết quả thành công
                 return new JsonResult(new { success = true });

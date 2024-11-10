@@ -25,9 +25,23 @@ namespace Q2.Pages.Members
         // OnGet method to fetch members
         public void OnGet()
         {
-            // Get all members and roles for display
-            Members = _context.Members.Include(m => m.Role).ToList();
-            Roles = _context.Roles.ToList();  // Fetch roles for the select options
+            var userEmail = HttpContext.Session.GetString("UserEmail");  // Lấy email người dùng từ session
+            var isAdmin = userEmail == "admin@example.com";  // Kiểm tra xem người dùng có phải là admin không
+
+            // Nếu người dùng là admin, lấy tất cả thành viên và vai trò
+            if (isAdmin)
+            {
+                Members = _context.Members.Include(m => m.Role).ToList();  // Lấy tất cả thành viên và vai trò
+                Roles = _context.Roles.ToList();  // Lấy tất cả vai trò
+            }
+            else
+            {
+                // Nếu không phải admin, chỉ lấy thông tin của người đăng nhập
+                Members = _context.Members
+                    .Where(m => m.Email == userEmail)  // Chỉ lấy thông tin của người dùng đang đăng nhập
+                    .Include(m => m.Role)
+                    .ToList();
+            }
         }
 
         [HttpPost]

@@ -2,6 +2,8 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model Q2.Pages.Home.IndexModel
 @{
+    var userEmail = HttpContext.Session.GetString("UserEmail");  // Lấy email từ session
+    var isAdmin = userEmail == "admin@example.com";  // Kiểm tra xem có phải admin không
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -161,6 +163,51 @@
     }
 }
 
+        .product-details {
+            margin-top: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+            .button-group button,
+            .button-group form button {
+                margin: 0;
+                padding: 0; /* Loại bỏ padding để chiều rộng và chiều cao đồng nhất */
+                font-size: 12px; /* Kích thước chữ nhỏ */
+                border-radius: 5px;
+                border: none;
+                cursor: pointer;
+                width: 120px; /* Chiều rộng của nút */
+                height: 50px; /* Chiều cao của nút, để nút vuông */
+                display: flex;
+                justify-content: center; /* Căn giữa nội dung ngang */
+                align-items: center; /* Căn giữa nội dung dọc */
+            }
+
+            .button-group .btn-detail {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+            .button-group .btn-remove {
+                background-color: #f44336;
+                color: white;
+            }
+
+            .button-group .btn-primary {
+                background-color: #007bff;
+                color: white;
+            }
+
+            .button-group button:hover {
+                opacity: 0.9;
+            }
+
+
     </style>
 </head>
 <body>
@@ -174,10 +221,11 @@
             <nav>
                 <ul>
                     <li><a href="#"><i class="fas fa-box"></i> Sản phẩm</a></li>
-                    <li><a href="#"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
+                    <li><a href="/Cart"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
                     <li><a href="/Orders/List"><i class="fas fa-list"></i> Đơn hàng</a></li>
                     <li><a href="/OrderDetails/List"><i class="fas fa-receipt"></i> Chi tiết đơn hàng</a></li>
                     <li><a href="/Member/List"><i class="fas fa-user-circle"></i> Tài khoản</a></li>
+                    <li><a href="/Login"><i class="fas fa-user-circle"></i> Đăng xuất</a></li>
                 </ul>
             </nav>
         </aside>
@@ -208,8 +256,11 @@
                     </select>
                 </form>
                 <!-- Button to open "Add Product" modal -->
-                <button id="add-product-btn" class="btn btn-success">Thêm Sản Phẩm</button>
-
+                @if (isAdmin)
+                {
+                    <button id="add-product-btn" class="btn btn-success">Thêm Sản Phẩm</button>
+                }
+                
                 <div class="pagination">
                     @if (ViewData["CurrentPage"] != null && ViewData["TotalPages"] != null)
                     {
@@ -286,8 +337,16 @@
                                     <h3>@product.ProductName</h3>
                                     <p class="product-weight">Cân nặng: @product.Weight kg</p>
                                     <p class="product-price">Giá: @product.UnitPrice VND</p>
-                                    <button class="btn-detail" data-product-id="@product.ProductId">Xem chi tiết</button>
-                                    <button type="button" class="btn-remove" data-product-id="@product.ProductId">Xoá</button>
+                                    <div class="button-group">
+                                        <button class="btn-detail" data-product-id="@product.ProductId">Xem chi tiết</button>
+                                        <!-- Thêm vào giỏ hàng -->
+                                        <a href="/Home?handler=AddToCart&productId=@product.ProductId" class="btn btn-primary" style="text-decoration:none;">+</a>
+                                        @if (isAdmin)
+                                        {
+                                            <button type="button" class="btn-remove" data-product-id="@product.ProductId">Xoá</button>
+                                        }
+                                    </div>
+                                    
                                 </div>
                             </div>
                         }
@@ -330,9 +389,13 @@
                     <input type="number" id="IdDetail" name="productId" class="form-control" readonly />
                 </div>
                 <!-- Nút Update và Remove ở giữa -->
-                <div class="form-group text-center">
-                    <button type="submit" class="btn btn-primary" id="update-product-btn">Cập nhật</button>
-                </div>
+                @if(isAdmin)
+                {
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary" id="update-product-btn">Cập nhật</button>
+                    </div>
+                }
+                
             </form>
         </div>
     </div>

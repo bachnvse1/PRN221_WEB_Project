@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Q2.Model;
 
 namespace Q2.Pages.Orders
@@ -17,8 +18,21 @@ namespace Q2.Pages.Orders
 
         public void OnGet()
         {
-            // Retrieve list of orders from the database
-            Orders = dbContext.Orders.ToList();
+            // Lấy email người dùng từ session
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            var isAdmin = userEmail == "admin@example.com"; // Kiểm tra nếu là admin
+
+            if (isAdmin)
+            {
+                // Nếu là admin, hiển thị tất cả các đơn hàng
+                Orders = dbContext.Orders.Include(o => o.Member).ToList();
+            }
+            else
+            {
+                // Nếu không phải admin, chỉ hiển thị đơn hàng của người dùng hiện tại
+                var userId = HttpContext.Session.GetString("UserId");
+                Orders = dbContext.Orders.Where(o => o.MemberId.ToString() == userId).ToList();
+            }
         }
 
         public IActionResult OnPostDelete(int orderId)

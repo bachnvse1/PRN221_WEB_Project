@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Q2.Model;
 using System.Linq;
+using System.Text.Json;
 
 namespace Q2.Pages.Home
 {
@@ -22,34 +23,6 @@ namespace Q2.Pages.Home
 
         public void OnGet(string searchQuery, string selectedCategory, int pages = 1)
         {
-            /* // Lưu các giá trị từ URL hoặc form vào biến
-             SearchQuery = searchQuery;
-             SelectedCategory = selectedCategory;
-
-             // Lấy danh sách các danh mục từ bảng Categories
-             Categories = _context.Categories
-                 .Select(c => c.categoryName) // Lấy tên danh mục (hoặc theo cấu trúc bảng của bạn)
-                 .ToList();
-
-             // Truy vấn sản phẩm dựa trên searchQuery và selectedCategory
-             var query = _context.Products.AsQueryable();
-
-             if (!string.IsNullOrEmpty(searchQuery))
-             {
-                 query = query.Where(p => p.ProductName.Contains(searchQuery));
-             }
-
-             if (!string.IsNullOrEmpty(selectedCategory))
-             {
-                 var category = _context.Categories.FirstOrDefault(c => c.categoryName == SelectedCategory);
-                 if (category != null)
-                 {
-                     int categoryId = category.categoryId;
-                     query = query.Where(p => p.CategoryId == categoryId); // Lọc theo tên danh mục
-                 }
-             }
-
-             Products = query.ToList();*/
 
             int pageSize = 8; // Số lượng sản phẩm mỗi trang
             int skip = (pages - 1) * pageSize; // Số sản phẩm bỏ qua dựa trên trang hiện tại
@@ -188,5 +161,33 @@ namespace Q2.Pages.Home
             return new JsonResult(new { success = true, message = "Sản phẩm đã được thêm thành công." });
         }
 
+        public IActionResult OnGetAddToCart(int productId)
+        {
+            List<OrderDetail> orders = new List<OrderDetail>();
+            if (HttpContext.Session.GetString("cart") != null)
+            {
+                string data = HttpContext.Session.GetString("cart");
+                orders = JsonSerializer.Deserialize<List<OrderDetail>>(data);
+            }
+            else orders = new List<OrderDetail>();
+
+            OrderDetail order = orders.FirstOrDefault(x => x.ProductId == productId);
+            if (order != null)
+            {
+                order.Quantity++;
+            }
+            else
+            {
+                order = new OrderDetail();
+                order.ProductId = productId;
+                order.Quantity = 1;
+                orders.Add(order);
+
+            }
+
+            HttpContext.Session.SetString("cart", JsonSerializer.Serialize(orders));
+
+            return RedirectToPage("/Carts/CarList");
+        }
     }
 }
